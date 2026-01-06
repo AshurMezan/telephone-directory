@@ -1,0 +1,17 @@
+{
+    "name": "alfar/phonebook",
+    "require": {
+        "phpoffice/phpspreadsheet": "^5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Alfar\\Phonebook\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Lion2517",
+            "email": "Lion2517@yahoo.com"
+        }
+    ]
+}
