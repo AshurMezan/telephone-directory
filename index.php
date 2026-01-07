@@ -28,8 +28,8 @@
 
     <!-- Основной справочник -->
     <div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered align-middle">
-            <thead class="table-dark sticky-top">
+        <table id="main-table" class="table table-striped table-hover table-bordered align-middle">
+            <thead class="table-dark">
             <tr>
                 <th class="text-uppercase text-center">должность</th>
                 <th class="text-uppercase text-center">ф.и.о.</th>
@@ -75,17 +75,34 @@
         </table>
     </div>
 
-    <!-- Филиалы -->
+    <!-- Филиалы  т.е. раздел для филиалов (List_2)-->
     <h2 class="mt-5 text-center text-uppercase pb-5">список телефонов сотрудников отделений гку цзн то</h2>
     <div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered align-middle">
-            <thead class="table-dark sticky-top">
+        <table id="branches-table" class="table table-striped table-hover table-bordered align-middle">
+            <thead class="table-dark">
             <tr>
                 <th class="text-uppercase text-center">должность</th>
                 <th class="text-uppercase text-center">ф.и.о.</th>
                 <th class="text-uppercase text-center">город</th>
                 <th class="text-uppercase text-center">моб.</th>
                 <th class="text-uppercase text-center">отпуск</th>
+                <?php
+                // Динамический столбец, если есть 'extra' в данных
+                $hasExtra = false;
+                if (isset($jsonData['branches'])) {
+                    foreach ($jsonData['branches'] as $branch) {
+                        foreach ($branch['employees'] as $item) {
+                            if (isset($item['extra']) && $item['extra'] !== '') {
+                                $hasExtra = true;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+                if ($hasExtra) {
+                    echo '<th class="text-uppercase text-center">дополнительно</th>';
+                }
+                ?>
             </tr>
             </thead>
             <tbody id="branchesTableBody">
@@ -95,30 +112,33 @@
                 if (is_array($branches) && !empty($branches)) {
                     foreach ($branches as $branch) {
                         echo '<tr class="table-primary fw-bold">
-                                <td colspan="5" class="text-center py-3 fs-5">' . nl2br(htmlspecialchars($branch['info'])) . '</td>
-                            </tr>';
+                            <td colspan="' . ($hasExtra ? '6' : '5') . '" class="text-center py-3 fs-5">' . nl2br(htmlspecialchars($branch['info'])) . '</td>
+                        </tr>';
 
                         foreach ($branch['employees'] as $item) {
                             if ($item['type'] === 'subdepartment') {
                                 echo '<tr class="table-secondary fw-bold">
-                                        <td colspan="5" class="text-center py-3 fs-5">' . htmlspecialchars($item['name']) . '</td>
-                                    </tr>';
+                                    <td colspan="' . ($hasExtra ? '6' : '5') . '" class="text-center py-3 fs-5">' . htmlspecialchars($item['name']) . '</td>
+                                </tr>';
                             } else {
                                 echo "<tr>
-                                        <td>" . htmlspecialchars($item['position'] ?? '') . "</td>
-                                        <td>" . htmlspecialchars($item['fio'] ?? '') . "</td>
-                                        <td>" . htmlspecialchars($item['city'] ?? '') . "</td>
-                                        <td>" . htmlspecialchars($item['mobile'] ?? '') . "</td>
-                                        <td>" . htmlspecialchars($item['vacation'] ?? '') . "</td>
-                                    </tr>";
+                                    <td>" . htmlspecialchars($item['position'] ?? '') . "</td>
+                                    <td>" . htmlspecialchars($item['fio'] ?? '') . "</td>
+                                    <td>" . htmlspecialchars($item['city'] ?? '') . "</td>
+                                    <td>" . htmlspecialchars($item['mobile'] ?? '') . "</td>
+                                    <td>" . htmlspecialchars($item['vacation'] ?? '') . "</td>";
+                                if ($hasExtra) {
+                                    echo "<td>" . htmlspecialchars($item['extra'] ?? '') . "</td>";
+                                }
+                                echo "</tr>";
                             }
                         }
                     }
                 } else {
-                    echo '<tr><td colspan="5" class="text-center text-muted py-5">Филиалы не найдены.</td></tr>';
+                    echo '<tr><td colspan="' . ($hasExtra ? '6' : '5') . '" class="text-center text-muted py-5">Филиалы не найдены.</td></tr>';
                 }
             } else {
-                echo '<tr><td colspan="5" class="text-center text-muted py-5">Данные не загружены.</td></tr>';
+                echo '<tr><td colspan="' . ($hasExtra ? '6' : '5') . '" class="text-center text-muted py-5">Данные не загружены.</td></tr>';
             }
             ?>
             </tbody>
@@ -126,7 +146,8 @@
     </div>
 </div>
 <!-- Блок для основного филиала END -->
-
+<span id="login" class="opacity-0">Admin</span>
+<span id="password" class="opacity-0">Admin</span>
 
 <!-- Модальное окно -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
@@ -186,11 +207,74 @@
         </div>
     </div>
 </div>
-
-<span id="login" class="opacity-0">Admin</span>
-<span id="password" class="opacity-0">Admin</span>
 <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="JS/main.js"></script>
 <script src="JS/loginModal.js"></script>
+<script>
+    function makeStickyHeader(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+
+        const thead = table.querySelector('thead');
+        if (!thead) return;
+
+        // Клон thead
+        const stickyHeader = thead.cloneNode(true);
+        stickyHeader.id = tableId + '-sticky';
+        stickyHeader.style.position = 'fixed';
+        stickyHeader.style.top = '0';
+        stickyHeader.style.height = '60px';
+        stickyHeader.style.zIndex = '5';
+        stickyHeader.style.borderRadius = '10px';
+        stickyHeader.style.display = 'none';
+        stickyHeader.style.backgroundColor = '#45265a';
+        stickyHeader.style.boxShadow = '0 6px 12px rgba(0,0,0,0.35)';
+        stickyHeader.style.pointerEvents = 'none'; // чтобы не мешал кликам
+        document.body.appendChild(stickyHeader);
+
+        function syncSizes() {
+            const tableRect = table.getBoundingClientRect();
+            stickyHeader.style.left = tableRect.left + 'px';
+            stickyHeader.style.width = tableRect.width + 'px';
+
+            // синхронизация ширины колонок
+            const origThs = thead.querySelectorAll('th');
+            const cloneThs = stickyHeader.querySelectorAll('th');
+
+            origThs.forEach((th, i) => {
+                cloneThs[i].style.width = th.offsetWidth + 'px';
+            });
+        }
+
+        function onScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            const tableRect = table.getBoundingClientRect();
+            const theadHeight = thead.offsetHeight;
+
+            const tableTop = tableRect.top + scrollTop;
+            const tableBottom = tableTop + table.offsetHeight;
+
+            if (
+                scrollTop > tableTop &&
+                scrollTop < tableBottom - theadHeight
+            ) {
+                stickyHeader.style.display = 'table';
+                syncSizes();
+            } else {
+                stickyHeader.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('scroll', onScroll);
+        window.addEventListener('resize', syncSizes);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        makeStickyHeader('main-table');
+        makeStickyHeader('branches-table');
+    });
+</script>
+
 </body>
 </html>

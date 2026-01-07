@@ -60,6 +60,7 @@ try {
         }
     }
 
+
     // === List_2: филиалы ===
     $worksheet2 = $spreadsheet->getSheetByName('List_2');
     $branches = [];

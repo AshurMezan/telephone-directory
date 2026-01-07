@@ -2,6 +2,7 @@
 /node_modules/
 # Файл data.json в корне
 data.json
+test.html
 
 # Папка node_modules
 node_modules/
