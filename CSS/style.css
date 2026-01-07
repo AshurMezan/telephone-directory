@@ -1,6 +1,12 @@
+html {
+    scroll-behavior: smooth; /* Плавный скролл для всей страницы */
+}
 body { background-color: #f8f9fa; }
 .container { margin-top: 50px; }
 h1 { text-align: center; margin-bottom: 30px; color: #343a40; }
+.custom-height {
+    height: 60px;
+}
 
 #dropZone {
     border: 3px dashed #ccc;
