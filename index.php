@@ -149,7 +149,7 @@
 <span id="login" class="opacity-0">Admin</span>
 <span id="password" class="opacity-0">Admin</span>
 
-<!-- Модальное окно -->
+<!-- Модальное окно загрузки exel-файла -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -230,6 +230,8 @@
         stickyHeader.style.backgroundColor = '#45265a';
         stickyHeader.style.boxShadow = '0 6px 12px rgba(0,0,0,0.35)';
         stickyHeader.style.pointerEvents = 'none'; // чтобы не мешал кликам
+        stickyHeader.style.opacity = '0.95';
+
         document.body.appendChild(stickyHeader);
 
         function syncSizes() {
@@ -251,7 +253,6 @@
 
             const tableRect = table.getBoundingClientRect();
             const theadHeight = thead.offsetHeight;
-
             const tableTop = tableRect.top + scrollTop;
             const tableBottom = tableTop + table.offsetHeight;
 
