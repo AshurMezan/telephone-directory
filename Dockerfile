@@ -3,12 +3,10 @@ FROM php:8.3-apache
 
 # Устанавливаем системные зависимости и расширения
 RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    unzip \
-    libonig-dev \
-    && rm -rf /var/lib/apt/lists/* \
+    libzip-dev unzip libonig-dev \
     && docker-php-ext-install mbstring zip \
-    && a2enmod rewrite
+    && a2enmod rewrite \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Копируем проект в контейнер
 COPY . /var/www/html/

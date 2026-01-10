@@ -33,7 +33,7 @@ try {
     $mainData = [];
     $highestRow1 = $worksheet1->getHighestRow();
 
-    for ($row = 3; $row <= $highestRow1; $row++) { // начинаем с 3-й строки
+    for ($row = 3; $row <= $highestRow1; $row++) {
         $position       = trim($worksheet1->getCell('A' . $row)->getValue() ?? '');
         $fio            = trim($worksheet1->getCell('B' . $row)->getValue() ?? '');
         $city           = trim($worksheet1->getCell('C' . $row)->getValue() ?? '');
@@ -60,7 +60,6 @@ try {
         }
     }
 
-
     // === List_2: филиалы ===
     $worksheet2 = $spreadsheet->getSheetByName('List_2');
     $branches = [];
@@ -68,6 +67,7 @@ try {
 
     $currentBranch = null;
     $branchEmployees = [];
+    $hasInternal = false;
 
     for ($row = 2; $row <= $highestRow2; $row++) {
         $cellA = trim($worksheet2->getCell('A' . $row)->getValue() ?? '');
@@ -75,6 +75,7 @@ try {
         $cellC = trim($worksheet2->getCell('C' . $row)->getValue() ?? '');
         $cellD = trim($worksheet2->getCell('D' . $row)->getValue() ?? '');
         $cellE = trim($worksheet2->getCell('E' . $row)->getValue() ?? '');
+        $cellF = trim($worksheet2->getCell('F' . $row)->getValue() ?? '');
 
         // Начало нового филиала
         if (stripos($cellA, 'ОГКУ ЦЗН ТО по') !== false || stripos($cellA, 'ОГКУ ЦЗН ТО') !== false) {
@@ -83,10 +84,11 @@ try {
                 $branchEmployees = [];
             }
             $currentBranch = $cellA;
+            $hasInternal = false;
             $nextRow = $row + 1;
             while ($nextRow <= $highestRow2) {
                 $nextA = trim($worksheet2->getCell('A' . $nextRow)->getValue() ?? '');
-                if ($nextA === '' || $nextA === 'ДОЛЖНОСТЬ' || stripos($nextA, 'ОГКУ ЦЗН ТО по') !== false) {
+                if ($nextA === '' || $nextA === 'ДОЛЖНОСТЬ' || stripos($nextA, 'ОГКУ ЦЗН ТО') !== false) {
                     break;
                 }
                 $currentBranch .= "\n" . $nextA;
@@ -96,28 +98,42 @@ try {
             continue;
         }
 
-        // Пропуск заголовка колонок
+        // Определение наличия колонки "ВНУТР."
         if ($cellA === 'ДОЛЖНОСТЬ') {
+            $hasInternal = (stripos($cellD, 'ВНУТР.') !== false);
             continue;
         }
 
         // Пропуск пустых строк
-        if ($cellA === '' && $cellB === '' && $cellC === '' && $cellD === '' && $cellE === '') {
+        if ($cellA === '' && $cellB === '' && $cellC === '' && $cellD === '' && $cellE === '' && $cellF === '') {
             continue;
         }
 
-        // Подотдел внутри филиала
-        if ($cellA !== '' && $cellB === '' && $cellC === '' && $cellD === '' && $cellE === '') {
+        // Подотдел
+        if ($cellA !== '' && $cellB === '' && $cellC === '' && $cellD === '' && $cellE === '' && $cellF === '') {
             $branchEmployees[] = ['type' => 'subdepartment', 'name' => $cellA];
         } else {
-            $branchEmployees[] = [
-                'type'     => 'employee',
-                'position' => $cellA,
-                'fio'      => $cellB,
-                'city'     => $cellC,
-                'mobile'   => $cellD,
-                'vacation' => $cellE
-            ];
+            if ($hasInternal) {
+                $branchEmployees[] = [
+                    'type'     => 'employee',
+                    'position' => $cellA,
+                    'fio'      => $cellB,
+                    'city'     => $cellC,
+                    'internal' => $cellD,
+                    'mobile'   => $cellE,
+                    'vacation' => $cellF
+                ];
+            } else {
+                $branchEmployees[] = [
+                    'type'     => 'employee',
+                    'position' => $cellA,
+                    'fio'      => $cellB,
+                    'city'     => $cellC,
+                    'internal' => '',
+                    'mobile'   => $cellD,
+                    'vacation' => $cellE
+                ];
+            }
         }
     }
 
@@ -125,11 +141,11 @@ try {
         $branches[] = ['info' => $currentBranch, 'employees' => $branchEmployees];
     }
 
-    // Сохраняем в JSON
+    // Сохранение в JSON
     $jsonData = ['main' => $mainData, 'branches' => $branches];
     file_put_contents('data.json', json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
-    // HTML для основного справочника
+    // HTML основной справочник
     $mainHtml = '';
     if (empty($mainData)) {
         $mainHtml = '<tr><td colspan="6" class="text-center text-muted py-5">Данные не найдены в файле.</td></tr>';
@@ -152,26 +168,43 @@ try {
         }
     }
 
-    // HTML для филиалов
+    // HTML филиалы — всегда 6 колонок
     $branchesHtml = '';
     if (empty($branches)) {
-        $branchesHtml = '<tr><td colspan="5" class="text-center text-muted py-5">Филиалы не найдены.</td></tr>';
+        $branchesHtml = '<tr><td colspan="6" class="text-center text-muted py-5">Филиалы не найдены.</td></tr>';
     } else {
         foreach ($branches as $branch) {
-            $branchesHtml .= '<tr class="table-primary fw-bold">
-                <td colspan="5" class="text-center py-3 fs-5">' . nl2br(htmlspecialchars($branch['info'])) . '</td>
+            // Наличие внутреннего телефона → six_columns
+            $hasSixColumns = false;
+            foreach ($branch['employees'] as $item) {
+                if (isset($item['internal']) && $item['internal'] !== '') {
+                    $hasSixColumns = true;
+                    break;
+                }
+            }
+
+            // Содержит "ОГКУ ЦЗН ТО" → title_branch
+            $isTitleBranch = (stripos($branch['info'], 'ОГКУ ЦЗН ТО') !== false);
+
+            $trClass = 'table-primary fw-bold';
+            if ($hasSixColumns) $trClass .= ' six_columns';
+            if ($isTitleBranch) $trClass .= ' title_branch';
+
+            $branchesHtml .= '<tr class="' . trim($trClass) . '">
+                <td colspan="6" class="text-center py-3 fs-5">' . nl2br(htmlspecialchars($branch['info'])) . '</td>
             </tr>';
 
             foreach ($branch['employees'] as $item) {
                 if ($item['type'] === 'subdepartment') {
                     $branchesHtml .= '<tr class="table-secondary fw-bold">
-                        <td colspan="5" class="text-center py-3 fs-5">' . htmlspecialchars($item['name']) . '</td>
+                        <td colspan="6" class="text-center py-3 fs-5">' . htmlspecialchars($item['name']) . '</td>
                     </tr>';
                 } else {
                     $branchesHtml .= "<tr>
                         <td>" . htmlspecialchars($item['position'] ?? '') . "</td>
                         <td>" . htmlspecialchars($item['fio'] ?? '') . "</td>
                         <td>" . htmlspecialchars($item['city'] ?? '') . "</td>
+                        <td>" . htmlspecialchars($item['internal'] ?? '') . "</td>
                         <td>" . htmlspecialchars($item['mobile'] ?? '') . "</td>
                         <td>" . htmlspecialchars($item['vacation'] ?? '') . "</td>
                     </tr>";

@@ -2,7 +2,7 @@ services:
   phonebook:
     build: .
     ports:
-      - "8080:80"
+      - "8090:80"
     volumes:
       - .:/var/www/html
     restart: always
