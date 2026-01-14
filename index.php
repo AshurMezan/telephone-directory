@@ -36,7 +36,7 @@
                 <th class="text-uppercase text-center">город</th>
                 <th class="text-uppercase text-center">внутр.</th>
                 <th class="text-uppercase text-center">№ кабинета</th>
-                <th class="text-uppercase text-center">отпуск</th>
+                <th class="text-uppercase text-center">E-mail</th>
             </tr>
             </thead>
             <tbody id="phoneTableBody">
@@ -86,7 +86,7 @@
                 <th class="text-uppercase text-center">город</th>
                 <th class="text-uppercase text-center">внутр.</th>
                 <th class="text-uppercase text-center">моб.</th>
-                <th class="text-uppercase text-center">отпуск</th>
+                <th class="text-uppercase text-center">E-mail</th>
             </tr>
             </thead>
             <tbody id="branchesTableBody">
@@ -156,6 +156,6 @@ require_once 'templates/modal-login.php';
 <script src="JS/main.js"></script>
 <script src="JS/loginModal.js"></script>
 <script src="JS/scroll.js"></script>
-<script src="JS/givMeList.js"></script>
+<!--<script src="JS/givMeList.js"></script>-->
 </body>
 </html>

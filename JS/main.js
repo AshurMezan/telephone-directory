@@ -58,8 +58,8 @@ document.getElementById('uploadForm').addEventListener('submit', function(e) {
                 // Обновляем филиалы (если блок существует)
                 if (branchesTableBody) {
                     branchesTableBody.innerHTML = data.branchesHtml;
-                    processBranchesTable()
-                    location.reload();
+                    // processBranchesTable()
+                    // location.reload();
                 }
 
                 uploadStatus.innerHTML = '<div class="text-success">Файл успешно загружен и обработан!</div>';

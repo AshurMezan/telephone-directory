@@ -58,66 +58,6 @@ function makeStickyHeader(tableId) {
     return stickyHeader;
 }
 
-/***********************************************************
- *  ДИНАМИКА КОЛОНКИ "ВНУТР." ДЛЯ List_2
- ***********************************************************/
-function initStickyHeaderLogicForList2(list_2) {
-    if (!list_2) return;
-
-    const headerRow = list_2.querySelector('tr');
-    if (!headerRow) return;
-
-    let savedInternalTh = null;
-    let internalIndex = -1;
-    let isInserted = false;
-
-    // === ШАГ 1: при загрузке удаляем "внутр." ===
-    [...headerRow.children].forEach((th, idx) => {
-        if (th.textContent.trim().toLowerCase() === 'внутр.') {
-            savedInternalTh = th.cloneNode(true);
-            internalIndex = idx;
-            th.remove();
-        }
-    });
-
-    if (!savedInternalTh) return;
-
-    // === ШАГ 2: отслеживаем title_branch ===
-    function onScroll() {
-        const stickyBottom = list_2.getBoundingClientRect().bottom;
-        const rows = document.querySelectorAll('#branches-table tbody tr.title_branch');
-
-        let activeBranchRow = null;
-
-        for (const row of rows) {
-            const r = row.getBoundingClientRect();
-            if (r.top <= stickyBottom && r.bottom > stickyBottom) {
-                activeBranchRow = row;
-                break;
-            }
-        }
-
-        if (!activeBranchRow) return;
-
-        const needSix = activeBranchRow.classList.contains('six_columns');
-
-        // === ВСТАВИТЬ "внутр." ===
-        if (needSix && !isInserted) {
-            const ref = headerRow.children[internalIndex] || null;
-            headerRow.insertBefore(savedInternalTh, ref);
-            isInserted = true;
-        }
-
-        // === УДАЛИТЬ "внутр." ===
-        if (!needSix && isInserted) {
-            savedInternalTh = headerRow.children[internalIndex];
-            savedInternalTh.remove();
-            isInserted = false;
-        }
-    }
-
-    window.addEventListener('scroll', onScroll);
-}
 
 /***********************************************************
  *  ИНИЦИАЛИЗАЦИЯ
@@ -128,6 +68,4 @@ let list_2 = null;
 document.addEventListener('DOMContentLoaded', () => {
     list_1 = makeStickyHeader('main-table');
     list_2 = makeStickyHeader('branches-table');
-
-    initStickyHeaderLogicForList2(list_2);
 });
