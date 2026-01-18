@@ -1,3 +1,4 @@
+/*Скрипт для работы с кнопками переключения: Тюмень и филиалы */
 document.addEventListener('DOMContentLoaded', function () {
     const switchButtons = document.querySelectorAll('.switch-view');
 

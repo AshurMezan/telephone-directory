@@ -1,3 +1,4 @@
+/*Скрипт для модального окна и передачи exel-файла на парсинг */
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('excelFile');
 const fileNameDiv = document.getElementById('fileName');
