@@ -152,7 +152,7 @@ try {
     } else {
         foreach ($mainData as $row) {
             if ($row['type'] === 'department') {
-                $mainHtml .= '<tr class="table-secondary fw-bold">
+                $mainHtml .= '<tr class="table-secondary fw-bold main_table_title">
                     <td colspan="6" class="text-center py-3 fs-5">' . htmlspecialchars($row['name']) . '</td>
                 </tr>';
             } else {
